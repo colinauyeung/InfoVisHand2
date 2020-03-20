@@ -124,6 +124,7 @@ class SquareMapChart {
                     var y = this.squarePosition[d.properties.iso_a2].y;
                     if(d.geometry.type === 'MultiPolygon'){
                         var square = [[x,y], [x+this.squareWidth,y], [x+this.squareWidth,y+this.squareWidth], [x,y+this.squareWidth], [x,y]];
+                        var filteredPolygons = d.geometry.coordinates.map( coordinates => this.path({type: 'Polygon', coordinates: coordinates}));
                         return flubber.combine(filteredPolygons, square, { single: true });
                     } else {
                         return flubber.toRect(this.path(d), x, y, this.squareWidth, this.squareWidth, { maxSegmentLength: 10 });

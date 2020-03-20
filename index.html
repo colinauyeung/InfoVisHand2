@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+<style>
+    #path .active{
+        fill: orange;
+    }
+</style>
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -9,6 +14,7 @@
 <body>
     <div id="mapcontainer" class="svg-container"></div>
     <script>
+        var block = false;
         var w = 1400;
         var h = 700;
         var centered;
@@ -28,26 +34,48 @@
 
         var worldmap = d3.json("countries.geojson");
 
+        var data = d3.json("datafixed.json");
+
         var grid = d3.json("grid.json");
 
-        var xscale = d3.scaleBand()
-            .domain([0, 28])
-            .range([0 , w])
+        var arr = [];
+
+        for(let i =1; i<=28; i++){
+            arr.push(i)
+        }
+        var xscale = d3.scaleBand(arr, [0 , w])
             .padding(.1);
 
+
+        var arr2 = [];
+
+        for(let i =1; i<=23; i++){
+            arr2.push(i)
+        }
         var yscale = d3.scaleBand()
-            .domain([0, 23])
+            .domain(arr2)
             .range([0 , h])
             .padding(.1);
 
-            Promise.all([worldmap, grid]).then(function (values) {
+        var colorscale = d3.scaleSequential([0,8], d3.interpolateViridis)
+            .nice();
+
+            Promise.all([worldmap, grid, data]).then(function (values) {
 
             svg.selectAll("path")
                 .data(values[0].features)
                 .enter()
                 .append("path")
-                .attr("class", "continent")
                 .attr("d", path)
+                .attr("fill",  function (d) {
+                    let name = d.properties.name;
+                    let retname = values[2].find(d => d.Country === name);
+                    if(retname != null){
+                        return colorscale(retname.Happiness_score)
+                    }
+                    return "red";
+                })
+                .attr("stroke", "black")
                 .style('opacity', 0.8)
                 .style('stroke-width',0.3)
                 .on('mouseover',function(d){
@@ -61,22 +89,49 @@
                         .style('stroke-width',0.3);
                 })
                 .on('click', function (d) {
+                    console.log(d);
+                    var x, y, k, xbox, ybox;
+                    var xh = xscale.bandwidth();
+                    var yh = yscale.bandwidth();
 
-                    var x, y, k;
+                    var country = d.properties.iso_a2;
+
+                    var gridcountry  = values[1].find(d => d.alpha2 === country);
+
+
+                    if(gridcountry != null){
+                        xbox = xscale(gridcountry.x);
+                        ybox = yscale(gridcountry.y);
+                    }
+                    else{
+                        var cen = path.centroid(d);
+                        xbox = cen[0];
+                        ybox = cen[0]
+                    }
 
                     if (d && centered !== d) {
                         var centroid = path.centroid(d);
-                        x = centroid[0];
+                        x = xbox;
                         console.log(x);
-                        y = centroid[1];
+                        y = ybox;
                         console.log(y);
-                        k = 3;
-      //                  centered = d;
+                        k = 4;
+                        centered = d;
                     } else {
                         x = w /2;
                         y = h /2;
                         k = 1;
-    //                 centered = null;
+                        centered = null;
+                    }
+                    svg.selectAll("path")
+                        .attr("stroke", "black")
+                        .style("stroke-width", 0.3)
+
+
+                    if(d && centered == d){
+                        d3.select(this)
+                            .attr("stroke", "orange")
+                            .style('stroke-width', 3);
                     }
 
                     svg.selectAll("path")
@@ -86,31 +141,47 @@
                         .duration(750)
                         .attr("transform", "scale(" + k + ")translate(" + w /2+ "," + h /2+ ")translate(" + -x  + "," + -y + ")")
                         .style("stroke-width", 1.5 / k + "px");
-                    if (d && centered !== d) {
-                        d3.select(this)
+                    if (!block) {
+                        svg.selectAll("path")
                             .transition()
                             .duration(3000)
                             .attrTween('d', d => {
-                                var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
-                                var square = [[x,y], [x+10,y], [x+10,y+10], [x,y+10], [x,y]];
-                                return flubber.combine(filteredPolygons, square, { single: true });
-                            })
-                        centered = d;
-                    } else {
-                        console.log(d);
-                        centroid = path.centroid(d);
-                        x = centroid[0];
-                        y = centroid[1];
-                        d3.select(this)
-                            .transition()
-                            .duration(3000)
-                            .attrTween('d', d => {
-                                var square = [[x,y], [x+10,y], [x+10,y+10], [x,y+10], [x,y]];
-                                var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
-                                return flubber.separate(square, filteredPolygons, { single: true });
-                            })
+                                let country = d.properties.iso_a2;
+                                let gridcountry  = values[1].find(d => d.alpha2 === country);
 
-                        centered = null;
+                                let x = xscale(gridcountry.x);
+                                let y = yscale(gridcountry.y);
+
+                                var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
+                                var square = [[x,y], [x+xh,y], [x+xh,y+yh], [x,y+yh], [x,y]];
+                                return flubber.combine(filteredPolygons, square, { single: true });
+                            });
+                        block = true;
+                    } else {
+                        if (centered == null){
+                            console.log(d);
+
+                            svg.selectAll("path")
+                                .transition()
+                                .duration(3000)
+                                .attrTween('d', d => {
+                                    let country = d.properties.iso_a2;
+                                    let gridcountry  = values[1].find(d => d.alpha2 === country);
+
+                                    let x = xscale(gridcountry.x);
+                                    let y = yscale(gridcountry.y);
+
+                                    var square = [[x, y], [x + xh, y], [x + xh, y + yh], [x, y + yh], [x, y]];
+                                    var filteredPolygons = d.geometry.coordinates.map(coordinates => path({
+                                        type: 'Polygon',
+                                        coordinates: coordinates
+                                    }));
+                                    return flubber.separate(square, filteredPolygons, {single: true});
+                                })
+                                .attr("stroke", "black");
+
+                            block = false;
+                        }
 
 
                     }
