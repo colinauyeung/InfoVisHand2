@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+<script>
+    var dats;
+    dats =  d3.json("grid.json");
+
+    Promise.all([dats]).then(function (values) {
+
+        console.log(values[0])
+        var x = 0;
+        var y = 0;
+        for(var item in values[0]){
+            console.log(values[0][item]);
+            if(values[0][item].x > x){
+                x = values[0][item].x;
+            }
+            if(values[0][item].y > y){
+                y = values[0][item].y;
+            }
+        }
+        console.log(x);
+        console.log(y);
+
+    })
+</script>
+</body>
+</html>

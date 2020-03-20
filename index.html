@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://unpkg.com/flubber@0.3.0"></script>
+</head>
+<body>
+    <div id="mapcontainer" class="svg-container"></div>
+    <script>
+        var w = 1400;
+        var h = 700;
+        var centered;
+        var svg = d3.select("#mapcontainer")
+            .append("svg")
+           // .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("viewBox", "0 0 " + w + " " + h)
+            .style("background", "#c9e8fd")
+         //   .classed("svg-content", true);
+
+        var projection = d3.geoMercator()
+            .translate([w/2, h/2])
+            .scale(175)
+            .center([0,40]);
+
+        var path = d3.geoPath().projection(projection);
+
+        var worldmap = d3.json("countries.geojson");
+
+        var grid = d3.json("grid.json");
+
+        var xscale = d3.scaleBand()
+            .domain([0, 28])
+            .range([0 , w])
+            .padding(.1);
+
+        var yscale = d3.scaleBand()
+            .domain([0, 23])
+            .range([0 , h])
+            .padding(.1);
+
+            Promise.all([worldmap, grid]).then(function (values) {
+
+            svg.selectAll("path")
+                .data(values[0].features)
+                .enter()
+                .append("path")
+                .attr("class", "continent")
+                .attr("d", path)
+                .style('opacity', 0.8)
+                .style('stroke-width',0.3)
+                .on('mouseover',function(d){
+                    d3.select(this)
+                        .style('opacity', 1)
+                        .style('stroke-width', 3);
+                })
+                .on('mouseout', function(d){
+                    d3.select(this)
+                        .style('opacity', 0.8)
+                        .style('stroke-width',0.3);
+                })
+                .on('click', function (d) {
+
+                    var x, y, k;
+
+                    if (d && centered !== d) {
+                        var centroid = path.centroid(d);
+                        x = centroid[0];
+                        console.log(x);
+                        y = centroid[1];
+                        console.log(y);
+                        k = 3;
+      //                  centered = d;
+                    } else {
+                        x = w /2;
+                        y = h /2;
+                        k = 1;
+    //                 centered = null;
+                    }
+
+                    svg.selectAll("path")
+                        .classed("active", centered && function(d) { return d === centered; });
+
+                    svg.transition()
+                        .duration(750)
+                        .attr("transform", "scale(" + k + ")translate(" + w /2+ "," + h /2+ ")translate(" + -x  + "," + -y + ")")
+                        .style("stroke-width", 1.5 / k + "px");
+                    if (d && centered !== d) {
+                        d3.select(this)
+                            .transition()
+                            .duration(3000)
+                            .attrTween('d', d => {
+                                var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
+                                var square = [[x,y], [x+10,y], [x+10,y+10], [x,y+10], [x,y]];
+                                return flubber.combine(filteredPolygons, square, { single: true });
+                            })
+                        centered = d;
+                    } else {
+                        console.log(d);
+                        centroid = path.centroid(d);
+                        x = centroid[0];
+                        y = centroid[1];
+                        d3.select(this)
+                            .transition()
+                            .duration(3000)
+                            .attrTween('d', d => {
+                                var square = [[x,y], [x+10,y], [x+10,y+10], [x,y+10], [x,y]];
+                                var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
+                                return flubber.separate(square, filteredPolygons, { single: true });
+                            })
+
+                        centered = null;
+
+
+                    }
+
+                })
+
+        });
+
+    </script>
+</body>
+</html>
