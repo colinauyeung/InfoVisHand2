@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+<script>
+
+    //everything in grid.json is in mycountries.json
+    var dats;
+    dats =  d3.json("grid.json");
+    var map = d3.json("mycountries.geojson");
+
+    Promise.all([dats, map]).then(function (values) {
+        console.log(values[1].features)
+        var prop = values[1].features;
+
+        var arr = [];
+        for(var item in prop){
+
+            let country = prop[item].properties.ISO3_CODE;
+            let found = values[0].find(d => d.alpha3 === country);
+            if(found == null){
+                arr.push([item, country, prop[item].properties.NAME_ENGL])
+            }
+        }
+
+        console.log(arr)
+
+
+    })
+</script>
+</body>
+</html>
