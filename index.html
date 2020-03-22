@@ -14,16 +14,20 @@
 <body>
     <div id="mapcontainer" class="svg-container"></div>
     <script>
+
+
+
         var block = false;
         var w = 1400;
         var h = 700;
         var centered;
         var svg = d3.select("#mapcontainer")
             .append("svg")
-           // .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("preserveAspectRatio", "xMinYMin meet")
             .attr("viewBox", "0 0 " + w + " " + h)
             .style("background", "#c9e8fd")
          //   .classed("svg-content", true);
+
 
         var projection = d3.geoMercator()
             .translate([w/2, h/2])
@@ -60,141 +64,490 @@
         var colorscale = d3.scaleSequential([0,8], d3.interpolateViridis)
             .nice();
 
+
+
+
+        svg.append("clipPath")
+            .attr("id", "clipCircle")
+            .append("circle")
+            .attr("r", function(d){
+                return Math.min(xscale.bandwidth(), yscale.bandwidth())
+            });
+
             Promise.all([worldmap, grid, data]).then(function (values) {
 
-            svg.selectAll("path")
-                .data(values[0].features)
-                .enter()
-                .append("path")
-                .attr("d", path)
-                .attr("fill",  function (d) {
-                    let name = d.properties.NAME_ENGL;
-                    let retname = values[2].find(d => d.Country === name);
-                    if(retname != null){
-                        return colorscale(retname.Happiness_score)
-                    }
-                    return "red";
-                })
-                .attr("stroke", "black")
-                .style('opacity', 0.8)
-                .style('stroke-width',0.3)
-                .on('mouseover',function(d){
-                    d3.select(this)
-                        .style('opacity', 1)
-                        .style('stroke-width', 3);
-                })
-                .on('mouseout', function(d){
-                    d3.select(this)
-                        .style('opacity', 0.8)
-                        .style('stroke-width',0.3);
-                })
-                .on('click', function (d) {
-                    console.log(d);
-                    var x, y, k, xbox, ybox;
-                    var xh = xscale.bandwidth();
-                    var yh = yscale.bandwidth();
+                let plot = svg.selectAll("g")
+                    .data(values[0].features)
+                    .enter()
+                    .append("g");
 
-                    var country = d.properties.ISO3_CODE;
-
-                    var gridcountry  = values[1].find(d => d.code === country);
-
-
-                    if(gridcountry != null){
-                        xbox = xscale(gridcountry.x);
-                        ybox = yscale(gridcountry.y);
-                    }
-                    else{
-                        var cen = path.centroid(d);
-                        xbox = cen[0];
-                        ybox = cen[0]
-                    }
-
-                    if (d && centered !== d) {
-                        var centroid = path.centroid(d);
-                        x = xbox;
-                        console.log(x);
-                        y = ybox;
-                        console.log(y);
-                        k = 4;
-                        centered = d;
-                    } else {
-                        x = w /2;
-                        y = h /2;
-                        k = 1;
-                        centered = null;
-                    }
-                    svg.selectAll("path")
-                        .attr("stroke", "black")
-                        .style("stroke-width", 0.3)
-
-
-                    if(d && centered == d){
+                plot.append("path")
+                    .attr("d", path)
+                    .attr("fill",  function (d) {
+                        let name = d.properties.NAME_ENGL;
+                        let retname = values[2].find(d => d.Country === name);
+                        if(retname != null){
+                            return colorscale(retname.Happiness_score)
+                        }
+                        return "red";
+                    })
+                    .attr("stroke", "black")
+                    .style('opacity', 0.8)
+                    .style('stroke-width',0)
+                    .on('mouseover',function(d){
                         d3.select(this)
-                            .attr("stroke", "orange")
-                            .style('stroke-width', 3);
-                    }
-
-                    svg.selectAll("path")
-                        .classed("active", centered && function(d) { return d === centered; });
-
-                    svg.transition()
-                        .duration(750)
-                        .attr("transform", "scale(" + k + ")translate(" + w /2+ "," + h /2+ ")translate(" + -x  + "," + -y + ")")
-                        .style("stroke-width", 1.5 / k + "px");
-                    if (!block) {
-                        //svg.selectAll("path")
+                            .style('opacity', 1)
+                            .style('stroke-width', 1);
+                    })
+                    .on('mouseout', function(d){
                         d3.select(this)
-                            .transition()
-                            .duration(3000)
-                            .attrTween('d', d => {
-                                let country = d.properties.ISO3_CODE;
-                                let gridcountry  = values[1].find(d => d.code === country);
+                            .style('opacity', 0.8)
+                            .style('stroke-width',0);
+                    })
+                    .on('click', function (d) {
 
-                                let x = xscale(gridcountry.x);
-                                let y = yscale(gridcountry.y);
-
-                                var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
-                                var square = [[x,y], [x+xh,y], [x+xh,y+yh], [x,y+yh], [x,y]];
-                                console.log(country)
-                                console.log(gridcountry)
-                                console.log(filteredPolygons)
-                                console.log(square)
-                               return flubber.combine(filteredPolygons, square, { single: true });
-                            });
-                        block = true;
-                    } else {
-                        if (centered == null){
-                            console.log(d);
-
-                            //svg.selectAll("path")
-                            d3.select(this)
+                        function switchmode(option) {
+                            svg.selectAll("path")
+                                //d3.select(this)
                                 .transition()
                                 .duration(3000)
                                 .attrTween('d', d => {
                                     let country = d.properties.ISO3_CODE;
                                     let gridcountry  = values[1].find(d => d.code === country);
-
                                     let x = xscale(gridcountry.x);
                                     let y = yscale(gridcountry.y);
+                                    let polyarr = d.geometry.coordinates;
+                                    var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
+                                    let type = d.geometry.type;
+                                    let len = filteredPolygons.length;
+                                    let shapefrom  = [];
+                                    let shapeto = [];
+                                    if(type == "MultiPolygon"){
+                                        if(len > 30){
+                                            let a = [];
+                                            for(let i = 0; i<30; i++){
+                                                a.push(i)
+                                            }
+                                            let b = [];
+                                            for(let i = 30; i<len; i++){
+                                                b.push(i)
+                                            }
+                                            let xs1 = d3.scaleBand(a, [x , x+xh]);
+                                            let xs2 = d3.scaleBand(b, [x , x+xh]);
 
-                                    var square = [[x, y], [x + xh, y], [x + xh, y + yh], [x, y + yh], [x, y]];
-                                    var filteredPolygons = d.geometry.coordinates.map(coordinates => path({
-                                        type: 'Polygon',
-                                        coordinates: coordinates
-                                    }));
-                         //           return flubber.separate(square, filteredPolygons, {single: true});
-                                })
-                                .attr("stroke", "black");
+                                            let ys = d3.scaleBand([0,1], [y, y+yh]);
 
-                            block = false;
+                                            for(let el in polyarr){
+                                                shapefrom.push(filteredPolygons[el]);
+
+                                                let minx, miny, minxh;
+                                                let minyh = ys.bandwidth();
+                                                if(el<30){
+                                                    minxh = xs1.bandwidth();
+                                                    minx = xs1(el);
+                                                    miny = ys(0);
+                                                }
+                                                else{
+                                                    minxh = xs2.bandwidth();
+                                                    minx = xs2(el);
+                                                    miny = ys(1);
+                                                }
+                                                let sq = [[minx, miny], [minx+minxh, miny], [minx+minxh, miny+minyh], [minx, miny+minyh], [minx, miny]]
+                                                shapeto.push(sq)
+                                            }
+                                            if(option){
+                                                return flubber.interpolateAll(shapefrom, shapeto, { single: true })
+                                            }
+                                            else{
+                                                return flubber.interpolateAll(shapeto, shapefrom, { single: true })
+                                            }
+
+
+
+
+                                        }
+                                        else{
+                                            let a = [];
+                                            for(let i = 0; i<len; i++){
+                                                a.push(i)
+                                            }
+
+                                            let  xs1 = d3.scaleBand(a, [x , x+xh]);
+
+                                            let ys = d3.scaleBand([0], [y, y+yh]);
+
+                                            for(let el in polyarr){
+                                                shapefrom.push(filteredPolygons[el]);
+
+                                                let minx, miny, minxh;
+                                                let minyh = ys.bandwidth();
+
+                                                minxh = xs1.bandwidth();
+                                                minx = xs1(el);
+                                                miny = ys(0);
+
+
+                                                let sq = [[minx, miny], [minx+minxh, miny], [minx+minxh, miny+minyh], [minx, miny+minyh], [minx, miny]]
+                                                shapeto.push(sq)
+                                            }
+
+                                            if(option){
+                                                return flubber.interpolateAll(shapefrom, shapeto, { single: true })
+                                            }
+                                            else{
+                                                return flubber.interpolateAll(shapeto, shapefrom, { single: true })
+                                            }
+                                        }
+
+                                    }
+                                    else{
+                                        let square = [[x,y], [x+xh,y], [x+xh,y+yh], [x,y+yh], [x,y]];
+                                        if(option){
+                                            return flubber.interpolate(path(d), square, { single: true })
+                                        }
+                                        else{
+                                            return flubber.interpolate(square, path(d),  { single: true })
+                                        }
+
+                                    }
+
+                                    var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
+                                    var square = [[x,y], [x+xh,y], [x+xh,y+yh], [x,y+yh], [x,y]];
+
+                                    //return flubber.combine(filteredPolygons, square, { single: true });
+                                });
+
                         }
 
+                        console.log(block);
+                        var x, y, k, xbox, ybox;
+                        var xh = xscale.bandwidth();
+                        var yh = yscale.bandwidth();
 
-                    }
+                        var country = d.properties.ISO3_CODE;
 
-                })
+                        var gridcountry  = values[1].find(d => d.code === country);
+
+
+                        if(gridcountry != null){
+                            xbox = xscale(gridcountry.x);
+                            ybox = yscale(gridcountry.y);
+                        }
+                        else{
+                            var cen = path.centroid(d);
+                            xbox = cen[0];
+                            ybox = cen[0]
+                        }
+
+                        if (d && centered !== d) {
+                            var centroid = path.centroid(d);
+                            x = xbox;
+                            console.log(x);
+                            y = ybox;
+                            console.log(y);
+                            k = 4;
+                            centered = d;
+                        } else {
+                            x = w /2;
+                            y = h /2;
+                            k = 1;
+                            centered = null;
+                        }
+                        svg.selectAll("path")
+                            .attr("stroke", "black")
+                            .style("stroke-width", 0)
+
+
+                        if(d && centered == d){
+                            d3.select(this)
+                                .attr("stroke", "orange")
+                                .style('stroke-width', 1);
+
+                          //  clicked(d)
+                        }
+                        else{
+                          //  reset()
+                        }
+
+                        svg.selectAll("path")
+                            .classed("active", centered && function(d) { return d === centered; });
+
+                        svg.transition()
+                            .duration(750)
+                            .attr("transform", "scale(" + k + ")translate(" + w /2+ "," + h /2+ ")translate(" + -x  + "," + -y + ")");
+                     //       .style("stroke-width", 1.5 / k + "px");
+                        if (!block) {
+                            plot.selectAll("image")
+                                .transition()
+                                .duration(3000)
+                                .style('opacity', 1);
+                            switchmode(true);
+                            block = true;
+                        } else {
+                            if (centered == null){
+                                console.log(d);
+                                plot.selectAll("image")
+                                    .transition()
+                                    .duration(3000)
+                                    .style('opacity', 0);
+                                switchmode(false);
+                                block = false;
+                            }
+
+
+                        }
+
+                    });
+
+
+
+                plot.append("clipPath")
+                    .attr("id", d => "clipCircle" + d.properties.CNTR_ID.toLowerCase())
+                    .append("circle")
+                    .attr("r", function(d){
+                        return Math.min(xscale.bandwidth(), yscale.bandwidth())/2
+                    })
+                    .attr('cx', function(d){
+                        let country = d.properties.ISO3_CODE;
+                        let gridcountry  = values[1].find(d => d.code === country);
+                        let x = xscale(gridcountry.x);
+                        let xh = xscale.bandwidth();
+                        return x+xh/2
+                    })
+                    .attr('cy', function(d){
+                        let country = d.properties.ISO3_CODE;
+                        let gridcountry  = values[1].find(d => d.code === country);
+                        let y = yscale(gridcountry.y);
+                        let yh = yscale.bandwidth();
+                        return y+yh/2
+                    });
+
+
+                plot.append('image')
+                    .attr('href', d => "svg/" + d.properties.CNTR_ID.toLowerCase() + ".svg")
+                    .attr('width', function(d){
+                        return xscale.bandwidth()
+                    })
+                    .attr('height', function(d){
+                        return yscale.bandwidth()
+                    })
+                    .attr('x', function(d){
+                        let country = d.properties.ISO3_CODE;
+                        let gridcountry  = values[1].find(d => d.code === country);
+                        let x = xscale(gridcountry.x);
+                        let xh = xscale.bandwidth();
+                        return x
+                    })
+                    .attr('y', function(d){
+                        let country = d.properties.ISO3_CODE;
+                        let gridcountry  = values[1].find(d => d.code === country);
+                        let y = yscale(gridcountry.y);
+                        let yh = yscale.bandwidth();
+                        return y
+                    })
+                    .style('opacity', 0)
+                 //   .attr("clip-path", "url(#clipCircle)");
+                    .attr("clip-path", d => "url(#clipCircle"+ d.properties.CNTR_ID.toLowerCase()+ ")")
+                    .on('click', function (d) {
+
+                        function switchmode(option) {
+                            svg.selectAll("path")
+                                //d3.select(this)
+                                .transition()
+                                .duration(3000)
+                                .attrTween('d', d => {
+                                    let country = d.properties.ISO3_CODE;
+                                    let gridcountry  = values[1].find(d => d.code === country);
+                                    let x = xscale(gridcountry.x);
+                                    let y = yscale(gridcountry.y);
+                                    let polyarr = d.geometry.coordinates;
+                                    var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
+                                    let type = d.geometry.type;
+                                    let len = filteredPolygons.length;
+                                    let shapefrom  = [];
+                                    let shapeto = [];
+                                    if(type == "MultiPolygon"){
+                                        if(len > 30){
+                                            let a = [];
+                                            for(let i = 0; i<30; i++){
+                                                a.push(i)
+                                            }
+                                            let b = [];
+                                            for(let i = 30; i<len; i++){
+                                                b.push(i)
+                                            }
+                                            let xs1 = d3.scaleBand(a, [x , x+xh]);
+                                            let xs2 = d3.scaleBand(b, [x , x+xh]);
+
+                                            let ys = d3.scaleBand([0,1], [y, y+yh]);
+
+                                            for(let el in polyarr){
+                                                shapefrom.push(filteredPolygons[el]);
+
+                                                let minx, miny, minxh;
+                                                let minyh = ys.bandwidth();
+                                                if(el<30){
+                                                    minxh = xs1.bandwidth();
+                                                    minx = xs1(el);
+                                                    miny = ys(0);
+                                                }
+                                                else{
+                                                    minxh = xs2.bandwidth();
+                                                    minx = xs2(el);
+                                                    miny = ys(1);
+                                                }
+                                                let sq = [[minx, miny], [minx+minxh, miny], [minx+minxh, miny+minyh], [minx, miny+minyh], [minx, miny]]
+                                                shapeto.push(sq)
+                                            }
+                                            if(option){
+                                                return flubber.interpolateAll(shapefrom, shapeto, { single: true })
+                                            }
+                                            else{
+                                                return flubber.interpolateAll(shapeto, shapefrom, { single: true })
+                                            }
+
+
+
+
+                                        }
+                                        else{
+                                            let a = [];
+                                            for(let i = 0; i<len; i++){
+                                                a.push(i)
+                                            }
+
+                                            let  xs1 = d3.scaleBand(a, [x , x+xh]);
+
+                                            let ys = d3.scaleBand([0], [y, y+yh]);
+
+                                            for(let el in polyarr){
+                                                shapefrom.push(filteredPolygons[el]);
+
+                                                let minx, miny, minxh;
+                                                let minyh = ys.bandwidth();
+
+                                                minxh = xs1.bandwidth();
+                                                minx = xs1(el);
+                                                miny = ys(0);
+
+
+                                                let sq = [[minx, miny], [minx+minxh, miny], [minx+minxh, miny+minyh], [minx, miny+minyh], [minx, miny]]
+                                                shapeto.push(sq)
+                                            }
+
+                                            if(option){
+                                                return flubber.interpolateAll(shapefrom, shapeto, { single: true })
+                                            }
+                                            else{
+                                                return flubber.interpolateAll(shapeto, shapefrom, { single: true })
+                                            }
+                                        }
+
+                                    }
+                                    else{
+                                        let square = [[x,y], [x+xh,y], [x+xh,y+yh], [x,y+yh], [x,y]];
+                                        if(option){
+                                            return flubber.interpolate(path(d), square, { single: true })
+                                        }
+                                        else{
+                                            return flubber.interpolate(square, path(d),  { single: true })
+                                        }
+
+                                    }
+
+                                    var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
+                                    var square = [[x,y], [x+xh,y], [x+xh,y+yh], [x,y+yh], [x,y]];
+
+                                    //return flubber.combine(filteredPolygons, square, { single: true });
+                                });
+
+                        }
+
+                        console.log(block);
+                        var x, y, k, xbox, ybox;
+                        var xh = xscale.bandwidth();
+                        var yh = yscale.bandwidth();
+
+                        var country = d.properties.ISO3_CODE;
+
+                        var gridcountry  = values[1].find(d => d.code === country);
+
+
+                        if(gridcountry != null){
+                            xbox = xscale(gridcountry.x);
+                            ybox = yscale(gridcountry.y);
+                        }
+                        else{
+                            var cen = path.centroid(d);
+                            xbox = cen[0];
+                            ybox = cen[0]
+                        }
+
+                        if (d && centered !== d) {
+                            var centroid = path.centroid(d);
+                            x = xbox;
+                            console.log(x);
+                            y = ybox;
+                            console.log(y);
+                            k = 4;
+                            centered = d;
+                        } else {
+                            x = w /2;
+                            y = h /2;
+                            k = 1;
+                            centered = null;
+                        }
+                        svg.selectAll("path")
+                            .attr("stroke", "black")
+                            .style("stroke-width", 0)
+
+
+                        if(d && centered == d){
+                            d3.select(this)
+                                .attr("stroke", "orange")
+                                .style('stroke-width', 1);
+
+                            //  clicked(d)
+                        }
+                        else{
+                            //  reset()
+                        }
+
+                        svg.selectAll("path")
+                            .classed("active", centered && function(d) { return d === centered; });
+
+                        svg.transition()
+                            .duration(750)
+                            .attr("transform", "scale(" + k + ")translate(" + w /2+ "," + h /2+ ")translate(" + -x  + "," + -y + ")");
+                        //       .style("stroke-width", 1.5 / k + "px");
+                        if (!block) {
+                            plot.selectAll("image")
+                                .transition()
+                                .duration(3000)
+                                .style('opacity', 1);
+                            switchmode(true);
+                            block = true;
+                        } else {
+                            if (centered == null){
+                                console.log(d);
+                                plot.selectAll("image")
+                                    .transition()
+                                    .duration(3000)
+                                    .style('opacity', 0);
+                                switchmode(false);
+                                block = false;
+                            }
+
+
+                        }
+
+                    });;
+
+
+
 
         });
+
 
     </script>
 </body>
