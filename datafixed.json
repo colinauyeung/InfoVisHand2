@@ -247,7 +247,7 @@
     "Explainedby:Perceptionsofcorruption": 0.128
   },
   {
-    "Country": "Czechia",
+    "Country": "Czech Republic",
     "Happiness_score": 6.852,
     "Whisker-high": 6.921,
     "Whisker-low": 6.783,
@@ -871,7 +871,7 @@
     "Explainedby:Perceptionsofcorruption": 0.098
   },
   {
-    "Country": "Russian Federation",
+    "Country": "Russia",
     "Happiness_score": 5.648,
     "Whisker-high": 5.713,
     "Whisker-low": 5.583,
@@ -975,7 +975,7 @@
     "Explainedby:Perceptionsofcorruption": 0.022
   },
   {
-    "Country": "Hong Kong",
+    "Country": "Hong Kong S.A.R. of China",
     "Happiness_score": 5.43,
     "Whisker-high": 5.523,
     "Whisker-low": 5.337,
@@ -1079,7 +1079,7 @@
     "Explainedby:Perceptionsofcorruption": 0.038
   },
   {
-    "Country": "North Macedonia",
+    "Country": "Macedonia",
     "Happiness_score": 5.274,
     "Whisker-high": 5.365,
     "Whisker-low": 5.182,
@@ -1326,7 +1326,7 @@
     "Explainedby:Perceptionsofcorruption": 0.082
   },
   {
-    "Country": "Congo",
+    "Country": "Congo (Brazzaville)",
     "Happiness_score": 4.812,
     "Whisker-high": 4.955,
     "Whisker-low": 4.668,
@@ -1417,7 +1417,7 @@
     "Explainedby:Perceptionsofcorruption": 0.062
   },
   {
-    "Country": "Palestine",
+    "Country": "Palestinian Territories",
     "Happiness_score": 4.696,
     "Whisker-high": 4.806,
     "Whisker-low": 4.587,
@@ -1638,7 +1638,7 @@
     "Explainedby:Perceptionsofcorruption": 0.089
   },
   {
-    "Country": "Democratic Republic of The Congo",
+    "Country": "Congo (Kinshasa)",
     "Happiness_score": 4.418,
     "Whisker-high": 4.543,
     "Whisker-low": 4.293,
@@ -1742,7 +1742,7 @@
     "Explainedby:Perceptionsofcorruption": 0.1
   },
   {
-    "Country": "Eswatini",
+    "Country": "Swaziland",
     "Happiness_score": 4.212,
     "Whisker-high": 4.392,
     "Whisker-low": 4.031,
@@ -1976,7 +1976,7 @@
     "Explainedby:Perceptionsofcorruption": 0.411
   },
   {
-    "Country": "United Republic of Tanzania",
+    "Country": "Tanzania",
     "Happiness_score": 3.231,
     "Whisker-high": 3.347,
     "Whisker-low": 3.114,

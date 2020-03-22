@@ -7,28 +7,25 @@
 </head>
 <body>
 <script>
-
-    //everything in grid.json is in mycountries.json
     var dats;
-    dats =  d3.json("datafixed.json");
-    var map = d3.json("mycountries.geojson");
+    dats =  d3.json("grid.json");
 
-    Promise.all([dats, map]).then(function (values) {
-        console.log(values[1].features)
-        var prop = values[1].features;
+    Promise.all([dats]).then(function (values) {
 
-        var arr = [];
+        console.log(values[0])
+        var x = 0;
+        var y = 0;
         for(var item in values[0]){
-
-            let country = values[0][item].Country;
-            let found = prop.find(d => d.properties.NAME_ENGL === country);
-            if(found == null){
-                arr.push([item, country, prop[item]])
+            console.log(values[0][item]);
+            if(values[0][item].x > x){
+                x = values[0][item].x;
+            }
+            if(values[0][item].y > y){
+                y = values[0][item].y;
             }
         }
-
-        console.log(arr)
-
+        console.log(x);
+        console.log(y);
 
     })
 </script>
