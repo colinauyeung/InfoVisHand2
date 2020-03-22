@@ -32,15 +32,15 @@
 
         var path = d3.geoPath().projection(projection);
 
-        var worldmap = d3.json("lowpolymap.geojson");
+        var worldmap = d3.json("countries.geojson");
 
         var data = d3.json("datafixed.json");
 
-        var grid = d3.json("mygrid.json");
+        var grid = d3.json("grid.json");
 
         var arr = [];
 
-        for(let i =0; i<=31; i++){
+        for(let i =1; i<=28; i++){
             arr.push(i)
         }
         var xscale = d3.scaleBand(arr, [0 , w])
@@ -49,7 +49,7 @@
 
         var arr2 = [];
 
-        for(let i =0; i<25; i++){
+        for(let i =1; i<=23; i++){
             arr2.push(i)
         }
         var yscale = d3.scaleBand()
@@ -68,7 +68,7 @@
                 .append("path")
                 .attr("d", path)
                 .attr("fill",  function (d) {
-                    let name = d.properties.NAME_ENGL;
+                    let name = d.properties.name;
                     let retname = values[2].find(d => d.Country === name);
                     if(retname != null){
                         return colorscale(retname.Happiness_score)
@@ -94,9 +94,9 @@
                     var xh = xscale.bandwidth();
                     var yh = yscale.bandwidth();
 
-                    var country = d.properties.ISO3_CODE;
+                    var country = d.properties.iso_a2;
 
-                    var gridcountry  = values[1].find(d => d.code === country);
+                    var gridcountry  = values[1].find(d => d.alpha2 === country);
 
 
                     if(gridcountry != null){
@@ -142,37 +142,31 @@
                         .attr("transform", "scale(" + k + ")translate(" + w /2+ "," + h /2+ ")translate(" + -x  + "," + -y + ")")
                         .style("stroke-width", 1.5 / k + "px");
                     if (!block) {
-                        //svg.selectAll("path")
-                        d3.select(this)
+                        svg.selectAll("path")
                             .transition()
                             .duration(3000)
                             .attrTween('d', d => {
-                                let country = d.properties.ISO3_CODE;
-                                let gridcountry  = values[1].find(d => d.code === country);
+                                let country = d.properties.iso_a2;
+                                let gridcountry  = values[1].find(d => d.alpha2 === country);
 
                                 let x = xscale(gridcountry.x);
                                 let y = yscale(gridcountry.y);
 
                                 var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
                                 var square = [[x,y], [x+xh,y], [x+xh,y+yh], [x,y+yh], [x,y]];
-                                console.log(country)
-                                console.log(gridcountry)
-                                console.log(filteredPolygons)
-                                console.log(square)
-                               return flubber.combine(filteredPolygons, square, { single: true });
+                                return flubber.combine(filteredPolygons, square, { single: true });
                             });
                         block = true;
                     } else {
                         if (centered == null){
                             console.log(d);
 
-                            //svg.selectAll("path")
-                            d3.select(this)
+                            svg.selectAll("path")
                                 .transition()
                                 .duration(3000)
                                 .attrTween('d', d => {
-                                    let country = d.properties.ISO3_CODE;
-                                    let gridcountry  = values[1].find(d => d.code === country);
+                                    let country = d.properties.iso_a2;
+                                    let gridcountry  = values[1].find(d => d.alpha2 === country);
 
                                     let x = xscale(gridcountry.x);
                                     let y = yscale(gridcountry.y);
@@ -182,7 +176,7 @@
                                         type: 'Polygon',
                                         coordinates: coordinates
                                     }));
-                         //           return flubber.separate(square, filteredPolygons, {single: true});
+                                    return flubber.separate(square, filteredPolygons, {single: true});
                                 })
                                 .attr("stroke", "black");
 
