@@ -12,8 +12,10 @@
     <script src="https://unpkg.com/flubber@0.3.0"></script>
 </head>
 <body>
-    <div id="mapcontainer" class="svg-container"></div>
+    <div id="mapcontainer" ></div>
+    <div id="tooltipdev"></div>
     <script>
+
 
 
 
@@ -61,6 +63,7 @@
             .range([0+50 , h-50])
             .padding(.1);
 
+        console.log(yscale.bandwidth())
         var colorscale = d3.scaleSequential([0,8], d3.interpolateViridis)
             .nice();
 
@@ -73,6 +76,22 @@
             .attr("r", function(d){
                 return Math.min(xscale.bandwidth(), yscale.bandwidth())
             });
+
+        var tooltip = d3.select("#mapcontainer")
+            .append("div")
+            .style("opacity", 0)
+            .attr("class", "tooltip")
+            .style("position", "absolute")
+            .style("background-color", "white")
+            .style("z-index", "10")
+            .style("border", "solid")
+            .style("stroke", 2)
+            .style("stroke-color", "black")
+            .style("border-width", "2px")
+            .style("border-radius", "5px")
+            .style("padding", "5px")
+
+
 
             Promise.all([worldmap, grid, data]).then(function (values) {
 
@@ -94,130 +113,44 @@
                     .attr("stroke", "black")
                     .style('opacity', 0.8)
                     .style('stroke-width',0)
+
+                    .on("mousemove", function (d){
+                        var name = d.properties.NAME_ENGL;
+                        tooltip.style("opacity", 1)
+                            .html(function(d){
+                                let retname = values[2].find(d => d.Country === name);
+                                let happy = "not tracked";
+                                if(retname != null){
+                                    happy = retname.Happiness_score
+                                }
+                                return name + "<br>happiness score: " + happy;
+                            })
+
+                            .style('left', (d3.event.pageX + 10) + 'px')
+                            .style('top', (d3.event.pageY ) + 'px')
+                            .style('display', 'inline-block')
+                    })
                     .on('mouseover',function(d){
                         d3.select(this)
                             .style('opacity', 1)
                             .style('stroke-width', 1);
+
+                        tooltip
+                            .style("opacity", 1)
+                        d3.select(this)
+                            .style("stroke", "black")
+                            .style("opacity", 1)
+
+
                     })
                     .on('mouseout', function(d){
                         d3.select(this)
                             .style('opacity', 0.8)
                             .style('stroke-width',0);
+                        tooltip
+                            .style("opacity", 0)
                     })
                     .on('click', function (d) {
-
-                        // function switchmode(option) {
-                        //     svg.selectAll("path")
-                        //         //d3.select(this)
-                        //         .transition()
-                        //         .duration(3000)
-                        //         .attrTween('d', d => {
-                        //             let country = d.properties.ISO3_CODE;
-                        //             let gridcountry  = values[1].find(d => d.code === country);
-                        //             let x = xscale(gridcountry.x);
-                        //             let y = yscale(gridcountry.y);
-                        //             let polyarr = d.geometry.coordinates;
-                        //             var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
-                        //             let type = d.geometry.type;
-                        //             let len = filteredPolygons.length;
-                        //             let shapefrom  = [];
-                        //             let shapeto = [];
-                        //             if(type == "MultiPolygon"){
-                        //                 if(len > 30){
-                        //                     let a = [];
-                        //                     for(let i = 0; i<30; i++){
-                        //                         a.push(i)
-                        //                     }
-                        //                     let b = [];
-                        //                     for(let i = 30; i<len; i++){
-                        //                         b.push(i)
-                        //                     }
-                        //                     let xs1 = d3.scaleBand(a, [x , x+xh]);
-                        //                     let xs2 = d3.scaleBand(b, [x , x+xh]);
-                        //
-                        //                     let ys = d3.scaleBand([0,1], [y, y+yh]);
-                        //
-                        //                     for(let el in polyarr){
-                        //                         shapefrom.push(filteredPolygons[el]);
-                        //
-                        //                         let minx, miny, minxh;
-                        //                         let minyh = ys.bandwidth();
-                        //                         if(el<30){
-                        //                             minxh = xs1.bandwidth();
-                        //                             minx = xs1(el);
-                        //                             miny = ys(0);
-                        //                         }
-                        //                         else{
-                        //                             minxh = xs2.bandwidth();
-                        //                             minx = xs2(el);
-                        //                             miny = ys(1);
-                        //                         }
-                        //                         let sq = [[minx, miny], [minx+minxh, miny], [minx+minxh, miny+minyh], [minx, miny+minyh], [minx, miny]]
-                        //                         shapeto.push(sq)
-                        //                     }
-                        //                     if(option){
-                        //                         return flubber.interpolateAll(shapefrom, shapeto, { single: true })
-                        //                     }
-                        //                     else{
-                        //                         return flubber.interpolateAll(shapeto, shapefrom, { single: true })
-                        //                     }
-                        //
-                        //
-                        //
-                        //
-                        //                 }
-                        //                 else{
-                        //                     let a = [];
-                        //                     for(let i = 0; i<len; i++){
-                        //                         a.push(i)
-                        //                     }
-                        //
-                        //                     let  xs1 = d3.scaleBand(a, [x , x+xh]);
-                        //
-                        //                     let ys = d3.scaleBand([0], [y, y+yh]);
-                        //
-                        //                     for(let el in polyarr){
-                        //                         shapefrom.push(filteredPolygons[el]);
-                        //
-                        //                         let minx, miny, minxh;
-                        //                         let minyh = ys.bandwidth();
-                        //
-                        //                         minxh = xs1.bandwidth();
-                        //                         minx = xs1(el);
-                        //                         miny = ys(0);
-                        //
-                        //
-                        //                         let sq = [[minx, miny], [minx+minxh, miny], [minx+minxh, miny+minyh], [minx, miny+minyh], [minx, miny]]
-                        //                         shapeto.push(sq)
-                        //                     }
-                        //
-                        //                     if(option){
-                        //                         return flubber.interpolateAll(shapefrom, shapeto, { single: true })
-                        //                     }
-                        //                     else{
-                        //                         return flubber.interpolateAll(shapeto, shapefrom, { single: true })
-                        //                     }
-                        //                 }
-                        //
-                        //             }
-                        //             else{
-                        //                 let square = [[x,y], [x+xh,y], [x+xh,y+yh], [x,y+yh], [x,y]];
-                        //                 if(option){
-                        //                     return flubber.interpolate(path(d), square, { single: true })
-                        //                 }
-                        //                 else{
-                        //                     return flubber.interpolate(square, path(d),  { single: true })
-                        //                 }
-                        //
-                        //             }
-                        //
-                        //             var filteredPolygons = d.geometry.coordinates.map( coordinates => path({type: 'Polygon', coordinates: coordinates}));
-                        //             var square = [[x,y], [x+xh,y], [x+xh,y+yh], [x,y+yh], [x,y]];
-                        //
-                        //             //return flubber.combine(filteredPolygons, square, { single: true });
-                        //         });
-                        //
-                        // }
 
                         console.log(block);
                         var x, y, k, xbox, ybox;
