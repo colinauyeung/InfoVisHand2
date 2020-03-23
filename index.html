@@ -50,7 +50,7 @@
             arr.push(i)
         }
         var xscale = d3.scaleBand(arr, [0+50 , w-50])
-            .padding(.1);
+//            .padding(.1);
 
 
         var arr2 = [];
@@ -61,7 +61,7 @@
         var yscale = d3.scaleBand()
             .domain(arr2)
             .range([0+50 , h-50])
-            .padding(.1);
+ //           .padding(.1);
 
         console.log(yscale.bandwidth())
         var colorscale = d3.scaleSequential([0,8], d3.interpolateViridis)
