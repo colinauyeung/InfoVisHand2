@@ -22,7 +22,7 @@
             .on("zoom", zoomed);
 
         var block = false;
-        var w = 1400;
+        var w = 1200;
         var h = 700;
         var margintop = 60;
         var marginside = 200;
@@ -542,7 +542,7 @@
                     group.append("rect")
                     .attr("x", 0)
                     .attr("y", 0)
-                    .attr("width", xscale.bandwidth()+5)
+                    .attr("width", xscale.bandwidth()+12)
                     .attr("height", yscale.bandwidth())
                     // .on('click', function(d){
                     //     switchmode(!block)
