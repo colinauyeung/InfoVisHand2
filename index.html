@@ -16,6 +16,17 @@
     <div id="tooltipdev"></div>
     <script>
 
+        //Adapted from:
+        //http://datawanderings.com/2018/10/28/making-a-map-in-d3-js-v-5/
+        //Map data retrieved from:
+        //https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/countries
+
+        //Grid Layout and parts of this code is also adapted from
+        //https://observablehq.com/@karimdouieb/world-tile-grid-map
+
+        //Country Flags retrieved from:
+        //https://github.com/hjnilsson/country-flags
+
 
         const zoom = d3.zoom()
             .scaleExtent([1, 8])
@@ -34,10 +45,12 @@
             .style("background", "#c9e8fd")
          //   .classed("svg-content", true);
 
-        var svg = yar.append("g")
+        var svg = yar.append("g");
 
         yar.call(zoom);
 
+        //The following functions come for zoom implementation
+        //https://observablehq.com/@d3/zoom-to-bounding-box
         function reset() {
             yar.transition().duration(750).call(
                 zoom.transform,
@@ -59,6 +72,14 @@
             );
         }
 
+        function zoomed() {
+            const {transform} = d3.event;
+            svg.attr("transform", transform);
+            svg.attr("stroke-width", 1 / transform.k);
+        }
+        //end of copied code
+
+        //Modifed from previous code block
         function clickedbox(x0, y0, x1, y1) {
             d3.event.stopPropagation();
             yar.transition().duration(750).call(
@@ -71,11 +92,7 @@
             );
         }
 
-        function zoomed() {
-            const {transform} = d3.event;
-            svg.attr("transform", transform);
-            svg.attr("stroke-width", 1 / transform.k);
-        }
+
 
 
         var projection = d3.geoMercator()
@@ -124,6 +141,8 @@
                 return Math.min(xscale.bandwidth(), yscale.bandwidth())
             });
 
+        //This code for building tooltips as well some other related code later on is adapted from:
+        //https://www.d3-graph-gallery.com/graph/interactivity_tooltip.html
         var tooltip = d3.select("#mapcontainer")
             .append("div")
             .style("opacity", 0)
@@ -215,27 +234,6 @@
 
 
 
-
-                // plot.append("clipPath")
-                //     .attr("id", d => "clipCircle" + d.properties.CNTR_ID.toLowerCase())
-                //     .append("circle")
-                //     .attr("r", function(d){
-                //         return Math.min(xscale.bandwidth(), yscale.bandwidth())/2
-                //     })
-                //     .attr('cx', function(d){
-                //         let country = d.properties.ISO3_CODE;
-                //         let gridcountry  = values[1].find(d => d.code === country);
-                //         let x = xscale(gridcountry.x);
-                //         let xh = xscale.bandwidth();
-                //         return x+xh/4
-                //     })
-                //     .attr('cy', function(d){
-                //         let country = d.properties.ISO3_CODE;
-                //         let gridcountry  = values[1].find(d => d.code === country);
-                //         let y = yscale(gridcountry.y);
-                //         let yh = yscale.bandwidth();
-                //         return y+yh/4
-                //     });
 
 
                 plot.append('image')

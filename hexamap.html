@@ -15,6 +15,13 @@
     <div id="mapcontainer" ></div>
     <div id="tooltipdev"></div>
     <script>
+        //Adapted from:
+        //http://datawanderings.com/2018/10/28/making-a-map-in-d3-js-v-5/
+        //Map data retrieved from:
+        //https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/countries
+
+        //Grid Layout and parts of this code is also adapted from
+        //https://observablehq.com/@karimdouieb/world-tile-grid-map
 
 
         const zoom = d3.zoom()
@@ -38,6 +45,8 @@
 
         yar.call(zoom);
 
+        //The following functions come for zoom implementation
+        //https://observablehq.com/@d3/zoom-to-bounding-box
         function reset() {
             yar.transition().duration(750).call(
                 zoom.transform,
@@ -59,6 +68,14 @@
             );
         }
 
+        function zoomed() {
+            const {transform} = d3.event;
+            svg.attr("transform", transform);
+            svg.attr("stroke-width", 1 / transform.k);
+        }
+        //end of copied code
+
+        //Modifed from previous code block
         function clickedbox(x0, y0, x1, y1) {
             d3.event.stopPropagation();
             yar.transition().duration(750).call(
@@ -71,11 +88,6 @@
             );
         }
 
-        function zoomed() {
-            const {transform} = d3.event;
-            svg.attr("transform", transform);
-            svg.attr("stroke-width", 1 / transform.k);
-        }
 
 
 
@@ -130,6 +142,8 @@
                 return Math.min(xscale.bandwidth(), yscale.bandwidth())
             });
 
+        //This code for building tooltips as well some other related code later on is adapted from:
+        //https://www.d3-graph-gallery.com/graph/interactivity_tooltip.html
         var tooltip = d3.select("#mapcontainer")
             .append("div")
             .style("opacity", 0)
